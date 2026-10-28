@@ -2,9 +2,16 @@ import { useMemo, useState } from "react";
 import {
   ArrowDownWideNarrow,
   ArrowLeft,
+  Bike,
   Check,
+  Coffee,
+  Film,
+  Gift,
   Heart,
+  Lock,
+  Pizza,
   Star,
+  Ticket,
   UserRound,
   Users,
 } from "lucide-react";
@@ -32,15 +39,54 @@ const people = [
 
 const groups = ["Neckar Cleanup", "Tree Planters", "Bike to Work"];
 
-function ProfileCard() {
-  const totalXp = user.achievements.reduce((sum, item) => sum + item.xp, 0);
+// Sample rewards; partners are placeholders, not real offers.
+const rewards = [
+  {
+    id: "coffee",
+    name: "Free coffee",
+    partner: "Local café",
+    xp: 50,
+    Icon: Coffee,
+  },
+  {
+    id: "bike",
+    name: "Bike rental for a day",
+    partner: "City bike share",
+    xp: 100,
+    Icon: Bike,
+  },
+  {
+    id: "concert",
+    name: "Concert ticket",
+    partner: "Summer concert in the park",
+    xp: 150,
+    Icon: Ticket,
+  },
+  {
+    id: "cinema",
+    name: "Cinema ticket",
+    partner: "Local cinema",
+    xp: 200,
+    Icon: Film,
+  },
+  {
+    id: "pizza",
+    name: "Free pizza",
+    partner: "Local pizzeria",
+    xp: 300,
+    Icon: Pizza,
+  },
+];
 
+const totalXp = user.achievements.reduce((sum, item) => sum + item.xp, 0);
+
+function ProfileCard({ xp }) {
   return (
     <article className="profile-card">
       <div className="profile-card-head">
         <div className="profile-photo">
           <UserRound size={58} strokeWidth={1.5} />
-          <span className="profile-xp">{totalXp} XP</span>
+          <span className="profile-xp">{xp} XP</span>
         </div>
         <div className="profile-alias">
           <span className="eyebrow">ALIAS</span>
@@ -212,15 +258,106 @@ function CommunityCard() {
   );
 }
 
+function RewardsCard({ xp, onRedeem }) {
+  const [redeemed, setRedeemed] = useState({});
+
+  return (
+    <article className="rewards-card">
+      <div className="rewards-head">
+        <div>
+          <h2>
+            <Gift size={18} /> Rewards
+          </h2>
+          <p>Collect XP by helping your city, then swap it for rewards.</p>
+        </div>
+        <span className="rewards-balance">
+          <Star size={14} /> {xp} XP available
+        </span>
+      </div>
+
+      <ul className="reward-list">
+        {rewards.map(({ id, name, partner, xp: cost, Icon }) => {
+          const code = redeemed[id];
+          const unlocked = xp >= cost;
+          const missing = cost - xp;
+          return (
+            <li
+              key={id}
+              className={`reward ${unlocked || code ? "reward--unlocked" : ""}`}
+            >
+              <span className="reward-icon">
+                <Icon size={22} />
+              </span>
+              <div className="reward-body">
+                <strong>{name}</strong>
+                <small>{partner}</small>
+                <span className="reward-cost">{cost} XP</span>
+                {!code && (
+                  <div
+                    className="reward-progress"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={cost}
+                    aria-valuenow={Math.min(xp, cost)}
+                    aria-label={`${name} progress`}
+                  >
+                    <span
+                      style={{ width: `${Math.min(100, (xp / cost) * 100)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+              {code ? (
+                <span className="reward-code">
+                  <Check size={14} /> Code: {code}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="reward-button"
+                  disabled={!unlocked}
+                  onClick={() => {
+                    onRedeem(cost);
+                    setRedeemed((current) => ({
+                      ...current,
+                      [id]: `${id.toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`,
+                    }));
+                  }}
+                >
+                  {unlocked ? (
+                    "Redeem"
+                  ) : (
+                    <>
+                      <Lock size={13} /> {missing} XP to go
+                    </>
+                  )}
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <p className="profile-note">
+        Sample rewards for this prototype. Show the code at the partner to
+        collect your reward.
+      </p>
+    </article>
+  );
+}
+
 function ProfilePage() {
+  const [xp, setXp] = useState(totalXp);
+
   return (
     <div className="page-content profile-page">
       <a className="profile-back" href="#overview">
         <ArrowLeft size={15} /> Back to overview
       </a>
       <div className="profile-grid">
-        <ProfileCard />
+        <ProfileCard xp={xp} />
         <CommunityCard />
+        <RewardsCard xp={xp} onRedeem={(cost) => setXp(xp - cost)} />
       </div>
     </div>
   );

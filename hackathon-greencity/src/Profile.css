@@ -15,7 +15,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 22px;
-  align-items: start;
+  align-items: stretch;
 }
 .profile-card,
 .community-card {
@@ -140,6 +140,14 @@
   font-size: 11px;
 }
 
+.community-card {
+  display: flex;
+  flex-direction: column;
+}
+.community-card .profile-note {
+  margin-top: auto;
+  padding-top: 18px;
+}
 .community-head {
   display: flex;
   align-items: center;
@@ -252,6 +260,151 @@
   cursor: not-allowed;
 }
 
+.rewards-card {
+  grid-column: 1 / -1;
+  background: #2b352e;
+  border: 1px solid #343d36;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px #11191435;
+  padding: 26px;
+  color: #f4e8ce;
+}
+.rewards-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.rewards-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.4px;
+}
+.rewards-head h2 svg {
+  color: #ca826b;
+}
+.rewards-head p {
+  margin: 6px 0 0;
+  color: #b8b8ac;
+  font-size: 12px;
+}
+.rewards-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #ca826b;
+  color: #202923;
+  font-size: 12px;
+  font-weight: 750;
+}
+.reward-list {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 12px;
+}
+.reward {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  gap: 12px 14px;
+  padding: 14px;
+  border: 1px solid #343d36;
+  border-radius: 12px;
+  background: #202923;
+}
+.reward--unlocked {
+  border-color: #9dbb83;
+}
+.reward-icon {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #343d36;
+  color: #b8b8ac;
+}
+.reward--unlocked .reward-icon {
+  background: #285d42;
+  color: #f4e8ce;
+}
+.reward-body {
+  flex: 1;
+  min-width: 0;
+}
+.reward-body strong {
+  display: block;
+  font-size: 14px;
+}
+.reward-body small {
+  display: block;
+  color: #b8b8ac;
+  font-size: 11px;
+}
+.reward-cost {
+  display: block;
+  margin-top: 4px;
+  color: #9dbb83;
+  font-size: 12px;
+  font-weight: 700;
+}
+.reward-progress {
+  height: 5px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: #343d36;
+  overflow: hidden;
+}
+.reward-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #9dbb83;
+}
+.reward-button,
+.reward-code {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.reward-button {
+  border: 1px solid #285d42;
+  background: #285d42;
+  color: #f4e8ce;
+  cursor: pointer;
+}
+.reward-button:hover:not(:disabled) {
+  background: #3a7a57;
+}
+.reward-button:disabled {
+  border-color: #343d36;
+  background: none;
+  color: #b8b8ac;
+  cursor: not-allowed;
+}
+.reward-code {
+  border: 1px dashed #9dbb83;
+  color: #9dbb83;
+}
+
 @media (max-width: 900px) {
   .profile-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -259,7 +412,8 @@
 }
 @media (max-width: 600px) {
   .profile-card,
-  .community-card {
+  .community-card,
+  .rewards-card {
     padding: 18px;
   }
   .profile-card-head {

@@ -1760,3 +1760,54 @@
     top: 98px;
   }
 }
+.map-3d {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #e7e1d0;
+}
+.map-3d .maplibregl-ctrl-attrib {
+  display: none;
+}
+.map-controls .map-3d-toggle {
+  font:
+    700 11px/1 "DM Sans",
+    sans-serif;
+  letter-spacing: 0.4px;
+}
+.map-controls .map-3d-toggle[aria-pressed="true"] {
+  background: #285d42;
+  color: #f4e8ce;
+}
+.map-3d-hint {
+  position: absolute;
+  z-index: 500;
+  left: 50%;
+  top: 64px;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #252f29d9;
+  color: #f4e8ce;
+  font-size: 10px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.sensor-marker-3d {
+  cursor: pointer;
+}
+.sensor-popup-3d .maplibregl-popup-content {
+  background: #252f29;
+  color: #b8b8ac;
+  border: 1px solid #4a554c;
+  border-radius: 7px;
+  box-shadow: 0 4px 14px #11191475;
+  font-size: 10px;
+  padding: 7px 9px;
+}
+.sensor-popup-3d .maplibregl-popup-content strong {
+  color: #f4e8ce;
+}
+.sensor-popup-3d .maplibregl-popup-tip {
+  border-top-color: #252f29;
+}

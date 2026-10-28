@@ -28,6 +28,7 @@ import {
   Wind,
   X,
 } from "lucide-react";
+import CityMap3D from "./CityMap3D.jsx";
 import ProfilePage from "./Profile.jsx";
 import "./App.css";
 
@@ -406,6 +407,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedSensor, setSelectedSensor] = useState(null);
+  const [is3D, setIs3D] = useState(true);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -716,88 +718,112 @@ function App() {
                   />
                   <kbd>⌘ K</kbd>
                 </div>
-                <MapContainer
-                  ref={mapRef}
-                  center={[49.1514, 9.1733]}
-                  zoom={11}
-                  minZoom={10}
-                  maxZoom={17}
-                  maxBounds={heilbronnBounds}
-                  maxBoundsViscosity={1}
-                  scrollWheelZoom
-                  className="leaflet-map"
-                  zoomControl={false}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    maxZoom={20}
-                  />
-                  <CoordinatesTracker
-                    onChange={(latlng) =>
-                      setCoordinates([latlng.lat, latlng.lng])
+                {is3D ? (
+                  <CityMap3D
+                    ref={mapRef}
+                    sensors={visibleSensors}
+                    user={defaultUser}
+                    bounds={heilbronnBounds}
+                    onSelect={setSelectedSensor}
+                    onCoordinates={(lngLat) =>
+                      setCoordinates([lngLat.lat, lngLat.lng])
                     }
                   />
-                  <CityBoundary />
-                  <BuildingFootprints />
-                  <Marker
-                    position={defaultUser}
-                    icon={L.divIcon({
-                      className: "user-marker-wrap",
-                      html: '<span class="user-marker"><i></i></span>',
-                      iconSize: [24, 24],
-                      iconAnchor: [12, 12],
-                    })}
+                ) : (
+                  <MapContainer
+                    ref={mapRef}
+                    center={[49.1514, 9.1733]}
+                    zoom={11}
+                    minZoom={10}
+                    maxZoom={17}
+                    maxBounds={heilbronnBounds}
+                    maxBoundsViscosity={1}
+                    scrollWheelZoom
+                    className="leaflet-map"
+                    zoomControl={false}
                   >
-                    <Tooltip direction="top" offset={[0, -9]}>
-                      You are here · sample location
-                    </Tooltip>
-                  </Marker>
-                  {visibleSensors.map((sensor) => (
-                    <CircleMarker
-                      key={sensor.id}
-                      center={sensor.position}
-                      radius={11}
-                      pathOptions={{
-                        color: "#285d42",
-                        fillColor:
-                          sensor.tone === "amber" || sensor.tone === "task"
-                            ? "#ca826b"
-                            : sensor.tone === "blue"
-                              ? "#b8b8ac"
-                              : "#9dbb83",
-                        fillOpacity: 0.28,
-                        weight: 2,
-                      }}
-                      eventHandlers={{ click: () => setSelectedSensor(sensor) }}
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      maxZoom={20}
+                    />
+                    <CoordinatesTracker
+                      onChange={(latlng) =>
+                        setCoordinates([latlng.lat, latlng.lng])
+                      }
+                    />
+                    <CityBoundary />
+                    <BuildingFootprints />
+                    <Marker
+                      position={defaultUser}
+                      icon={L.divIcon({
+                        className: "user-marker-wrap",
+                        html: '<span class="user-marker"><i></i></span>',
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                      })}
                     >
-                      <Marker
-                        position={sensor.position}
-                        icon={sensorIcon(sensor.tone)}
-                        eventHandlers={{ click: () => setSelectedSensor(sensor) }}
+                      <Tooltip direction="top" offset={[0, -9]}>
+                        You are here · sample location
+                      </Tooltip>
+                    </Marker>
+                    {visibleSensors.map((sensor) => (
+                      <CircleMarker
+                        key={sensor.id}
+                        center={sensor.position}
+                        radius={11}
+                        pathOptions={{
+                          color: "#285d42",
+                          fillColor:
+                            sensor.tone === "amber" || sensor.tone === "task"
+                              ? "#ca826b"
+                              : sensor.tone === "blue"
+                                ? "#b8b8ac"
+                                : "#9dbb83",
+                          fillOpacity: 0.28,
+                          weight: 2,
+                        }}
+                        eventHandlers={{
+                          click: () => setSelectedSensor(sensor),
+                        }}
                       >
-                        <Tooltip
-                          direction="top"
-                          offset={[0, -12]}
-                          className="sensor-tooltip"
+                        <Marker
+                          position={sensor.position}
+                          icon={sensorIcon(sensor.tone)}
+                          eventHandlers={{
+                            click: () => setSelectedSensor(sensor),
+                          }}
                         >
-                          <strong>{sensor.name}</strong>
-                          <br />
-                          {sensor.label}:{" "}
-                          <span
-                            className={
-                              sensor.type === "task" ? "tooltip-xp" : undefined
-                            }
+                          <Tooltip
+                            direction="top"
+                            offset={[0, -12]}
+                            className="sensor-tooltip"
                           >
-                            {sensor.value}
-                          </span>
-                          <br />
-                          <small>{sensor.detail}</small>
-                        </Tooltip>
-                      </Marker>
-                    </CircleMarker>
-                  ))}
-                </MapContainer>
+                            <strong>{sensor.name}</strong>
+                            <br />
+                            {sensor.label}:{" "}
+                            <span
+                              className={
+                                sensor.type === "task"
+                                  ? "tooltip-xp"
+                                  : undefined
+                              }
+                            >
+                              {sensor.value}
+                            </span>
+                            <br />
+                            <small>{sensor.detail}</small>
+                          </Tooltip>
+                        </Marker>
+                      </CircleMarker>
+                    ))}
+                  </MapContainer>
+                )}
+                {is3D && (
+                  <div className="map-3d-hint">
+                    Right-drag or Ctrl + drag to tilt and rotate
+                  </div>
+                )}
                 {selectedSensor && (
                   <div className="sensor-detail">
                     <button
@@ -820,6 +846,16 @@ function App() {
                   </div>
                 )}
                 <div className="map-controls">
+                  <button
+                    type="button"
+                    className="map-3d-toggle"
+                    aria-pressed={is3D}
+                    aria-label={is3D ? "Switch to 2D map" : "Switch to 3D map"}
+                    onClick={() => setIs3D(!is3D)}
+                  >
+                    {is3D ? "2D" : "3D"}
+                  </button>
+                  <span />
                   <button
                     type="button"
                     aria-label="Show my location"
