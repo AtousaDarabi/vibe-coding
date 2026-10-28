@@ -5,11 +5,10 @@ A responsive React dashboard prototype for exploring environmental indicators ac
 ## Run locally
 
 ```sh
-npm install
 npm run dev
 ```
 
-Open the local address printed by Vite. To create a production build, run `npm run build`; `npm run lint` runs Oxlint.
+This installs everything it needs the first time and opens the app in your browser automatically. To create a production build, run `npm run build`; `npm run lint` runs Oxlint.
 
 ## Map and sample data
 
