@@ -23,6 +23,7 @@ import {
   MapPin,
   Menu,
   Search,
+  ShoppingBag,
   SlidersHorizontal,
   UserRound,
   Wind,
@@ -166,7 +167,7 @@ function BuildingFootprints() {
   ) : null;
 }
 
-const sensors = [
+const demoSensors = [
   {
     id: 1,
     name: "Neckar riverside",
@@ -368,6 +369,17 @@ const filters = [
   { id: "task", label: "Tasks" },
 ];
 
+const environmentFilters = [
+  { id: "all", label: "All sensors" },
+  { id: "air", label: "Air quality" },
+  { id: "temperature", label: "Temperature" },
+  { id: "humidity", label: "Humidity" },
+  { id: "uv", label: "UV" },
+  { id: "wind", label: "Wind" },
+  { id: "pollen", label: "Pollen" },
+  { id: "task", label: "Tasks" },
+];
+
 const legendItems = [
   { id: "air", label: "Air", tone: "mint" },
   { id: "green", label: "Green", tone: "green" },
@@ -375,6 +387,84 @@ const legendItems = [
   { id: "noise", label: "Noise", tone: "amber" },
   { id: "task", label: "Tasks", tone: "task" },
 ];
+
+const environmentLegendItems = [
+  { id: "air", label: "Air", tone: "mint" },
+  { id: "temperature", label: "Temperature", tone: "amber" },
+  { id: "humidity", label: "Humidity", tone: "blue" },
+  { id: "uv", label: "UV", tone: "task" },
+  { id: "wind", label: "Wind", tone: "green" },
+  { id: "pollen", label: "Pollen", tone: "amber" },
+  { id: "task", label: "Tasks", tone: "task" },
+];
+
+const sensorColors = {
+  mint: "#62aa7c",
+  green: "#85a956",
+  blue: "#63a6d2",
+  amber: "#dda950",
+  task: "#ca826b",
+};
+
+const metricDetails = {
+  pm2_5: ["Air quality · PM2.5", "air", "mint"],
+  pm10: ["Air quality · PM10", "air", "mint"],
+  nitrogen_dioxide: ["Air quality · NO₂", "air", "mint"],
+  ozone: ["Air quality · Ozone", "air", "mint"],
+  european_aqi: ["European air quality index", "air", "mint"],
+  temperature: ["Temperature", "temperature", "amber"],
+  relative_humidity: ["Humidity", "humidity", "blue"],
+  uv_intensity: ["UV intensity", "uv", "task"],
+  wind_speed: ["Wind speed", "wind", "green"],
+  precipitation: ["Precipitation", "wind", "green"],
+  cloud_cover: ["Cloud cover", "wind", "green"],
+  alder_pollen: ["Alder pollen", "pollen", "amber"],
+  birch_pollen: ["Birch pollen", "pollen", "amber"],
+  grass_pollen: ["Grass pollen", "pollen", "amber"],
+  mugwort_pollen: ["Mugwort pollen", "pollen", "amber"],
+  olive_pollen: ["Olive pollen", "pollen", "amber"],
+  ragweed_pollen: ["Ragweed pollen", "pollen", "amber"],
+};
+
+function sensorsFromEnvironment(environment) {
+  const stations = new Map(
+    environment.stations.map((station) => [station.box_id, station]),
+  );
+  const latestBySensorMetric = new Map();
+
+  for (const evidence of environment.evidence) {
+    const details = metricDetails[evidence.metric];
+    const coordinates = evidence.geometry?.coordinates;
+    if (!details || evidence.value == null || !coordinates || coordinates.length < 2)
+      continue;
+    if (["historical", "unavailable"].includes(evidence.data_type)) continue;
+    if (evidence.quality_flags?.some((flag) =>
+      ["indoor", "exposure_unknown", "outside_demo_area", "expired_model"].includes(flag),
+    )) continue;
+
+    const stationId = evidence.source.url.match(/\/boxes\/([^/?]+)/)?.[1];
+    const station = stations.get(stationId);
+    const key = `${stationId ?? evidence.source.name}:${evidence.metric}`;
+    const existing = latestBySensorMetric.get(key);
+    const observedAt = evidence.observed_at ?? evidence.valid_from ?? evidence.fetched_at;
+    if (existing && new Date(existing.observedAt) >= new Date(observedAt)) continue;
+
+    const [label, type, tone] = details;
+    latestBySensorMetric.set(key, {
+      id: evidence.id,
+      name: station?.name || evidence.source.name,
+      type,
+      label,
+      value: `${Number(evidence.value.toFixed(2))} ${evidence.unit}`.trim(),
+      detail: `${evidence.data_type === "observation" ? "Observed" : "Model estimate"} · ${new Date(observedAt).toLocaleString()}`,
+      position: [coordinates[1], coordinates[0]],
+      tone,
+      observedAt,
+    });
+  }
+
+  return [...latestBySensorMetric.values()];
+}
 
 function CoordinatesTracker({ onChange }) {
   useMapEvents({
@@ -397,18 +487,105 @@ function sensorIcon(tone) {
   });
 }
 
-const currentPage = () =>
-  window.location.hash === "#profile" ? "profile" : "dashboard";
+const currentPage = () => {
+  if (window.location.hash === "#profile") return "profile";
+  if (window.location.hash === "#marketplace") return "marketplace";
+  return "dashboard";
+};
+
+function MarketplacePage() {
+  return (
+    <div className="page-content">
+      <section className="page-heading">
+        <div>
+          <p className="eyebrow page-eyebrow">HEILBRONN REGION</p>
+          <h1>Marketplace</h1>
+          <p className="heading-subtitle">
+            Explore local offers and community listings.
+          </p>
+        </div>
+      </section>
+      <section className="marketplace-empty" aria-label="Marketplace listings">
+        <span className="marketplace-empty-icon">
+          <ShoppingBag size={22} />
+        </span>
+        <h2>Local marketplace</h2>
+        <p>Listings for Heilbronn will appear here.</p>
+      </section>
+    </div>
+  );
+}
+
+function MarketplaceIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1.4" />
+      <rect x="14" y="3" width="7" height="7" rx="1.4" />
+      <rect x="3" y="14" width="7" height="7" rx="1.4" />
+      <rect x="14" y="14" width="7" height="7" rx="1.4" />
+    </svg>
+  );
+}
 
 function App() {
   const [page, setPage] = useState(currentPage);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [environmentSensors, setEnvironmentSensors] = useState(null);
+  const [environmentStatus, setEnvironmentStatus] = useState("loading");
   const [coordinates, setCoordinates] = useState(heilbronn);
   const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedSensor, setSelectedSensor] = useState(null);
   const [is3D, setIs3D] = useState(true);
   const mapRef = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadEnvironment = async () => {
+      try {
+        const requestEnvironment = () =>
+          fetch("/api/v1/moment/environment", { credentials: "include" });
+        let response = await requestEnvironment();
+        if (response.status === 401) {
+          const sessionResponse = await fetch("/api/v1/session", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ language: "en" }),
+          });
+          if (!sessionResponse.ok)
+            throw new Error("Could not create a data session");
+          response = await requestEnvironment();
+        }
+        if (!response.ok) throw new Error("Environment API is unavailable");
+        const payload = await response.json();
+        const liveSensors = sensorsFromEnvironment(payload.data);
+        if (!cancelled) {
+          setEnvironmentSensors(liveSensors);
+          setEnvironmentStatus("connected");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setEnvironmentStatus("demo");
+          console.info("Showing demo map data:", error.message);
+        }
+      }
+    };
+    loadEnvironment();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const onHashChange = () => {
@@ -423,9 +600,15 @@ function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
+  const liveMode = environmentStatus === "connected";
+  const mapSensors = liveMode
+    ? [...environmentSensors, ...demoSensors.filter((sensor) => sensor.type === "task")]
+    : demoSensors;
+  const mapFilters = liveMode ? environmentFilters : filters;
+  const mapLegendItems = liveMode ? environmentLegendItems : legendItems;
   const visibleSensors = useMemo(
     () =>
-      sensors.filter((sensor) => {
+      mapSensors.filter((sensor) => {
         const matchesFilter =
           activeFilter === "all" || sensor.type === activeFilter;
         const matchesSearch = `${sensor.name} ${sensor.label}`
@@ -433,19 +616,19 @@ function App() {
           .includes(search.toLowerCase());
         return matchesFilter && matchesSearch;
       }),
-    [activeFilter, search],
+    [activeFilter, search, mapSensors],
   );
 
   return (
     <div className="app-shell">
       <aside className={`sidebar ${mobileMenuOpen ? "sidebar--open" : ""}`}>
-        <a className="brand" href="#overview" aria-label="GreenCity home">
+        <a className="brand" href="#overview" aria-label="Heil G home">
           <span className="brand-mark">
             <Leaf size={19} strokeWidth={2.2} />
           </span>
           <span>
-            green<span className="brand-light">city</span>
-            <small>URBAN INTELLIGENCE</small>
+            Heil <span className="brand-light">G</span>
+            <small>CITY DASHBOARD</small>
           </span>
         </a>
         <div className="sidebar-city">
@@ -456,8 +639,18 @@ function App() {
         </div>
         <nav className="side-nav" aria-label="Main navigation">
           <span className="eyebrow nav-heading">WORKSPACE</span>
-          <a className="nav-item nav-item--active" href="#overview">
-            <Activity size={17} /> Overview <span className="nav-dot" />
+          <a
+            className={`nav-item ${page === "dashboard" ? "nav-item--active" : ""}`}
+            href="#overview"
+          >
+            <Activity size={17} /> Overview
+            {page === "dashboard" && <span className="nav-dot" />}
+          </a>
+          <a
+            className={`nav-item ${page === "marketplace" ? "nav-item--active" : ""}`}
+            href="#marketplace"
+          >
+            <MarketplaceIcon /> Marketplace
           </a>
           <a className="nav-item" href="#map">
             <MapPin size={17} /> Live map
@@ -503,7 +696,13 @@ function App() {
           </button>
           <div className="breadcrumb">
             Workspace <span>/</span>{" "}
-            <strong>{page === "profile" ? "Profile" : "Overview"}</strong>
+            <strong>
+              {page === "profile"
+                ? "Profile"
+                : page === "marketplace"
+                  ? "Marketplace"
+                  : "Overview"}
+            </strong>
           </div>
           <div className="topbar-actions">
             <span className="sync-status">
@@ -529,6 +728,8 @@ function App() {
 
         {page === "profile" ? (
           <ProfilePage />
+        ) : page === "marketplace" ? (
+          <MarketplacePage />
         ) : (
           <div className="page-content">
             <section className="page-heading">
@@ -676,13 +877,22 @@ function App() {
                   <div className="section-title-line">
                     <h2>City overview</h2>
                     <span className="live-badge">
-                      <i /> SAMPLE
+                      <i /> {environmentStatus === "loading" ? "CONNECTING" : liveMode ? "LIVE DATA" : "DEMO DATA"}
                     </span>
                   </div>
                   <p>Explore the Heilbronn city boundary</p>
                 </div>
-                <button type="button" className="filter-button">
-                  <SlidersHorizontal size={15} /> Filters <span>2</span>
+                <button
+                  type="button"
+                  className="filter-button"
+                  onClick={() =>
+                    document.querySelector(".map-filter-bar")?.scrollIntoView({
+                      behavior: "smooth",
+                      block: "nearest",
+                    })
+                  }
+                >
+                  <SlidersHorizontal size={15} /> Filters
                 </button>
               </div>
               <div className="map-card">
@@ -697,7 +907,7 @@ function App() {
                   <i />
                 </div>
                 <div className="map-filter-bar">
-                  {filters.map((filter) => (
+                  {mapFilters.map((filter) => (
                     <button
                       key={filter.id}
                       type="button"
@@ -773,14 +983,9 @@ function App() {
                         center={sensor.position}
                         radius={11}
                         pathOptions={{
-                          color: "#285d42",
-                          fillColor:
-                            sensor.tone === "amber" || sensor.tone === "task"
-                              ? "#ca826b"
-                              : sensor.tone === "blue"
-                                ? "#b8b8ac"
-                                : "#9dbb83",
-                          fillOpacity: 0.28,
+                          color: sensorColors[sensor.tone] ?? "#62aa7c",
+                          fillColor: sensorColors[sensor.tone] ?? "#62aa7c",
+                          fillOpacity: 0.32,
                           weight: 2,
                         }}
                         eventHandlers={{
@@ -883,7 +1088,7 @@ function App() {
                   </button>
                 </div>
                 <div className="map-legend">
-                  {legendItems.map((item) => (
+                  {mapLegendItems.map((item) => (
                     <button
                       key={item.id}
                       type="button"

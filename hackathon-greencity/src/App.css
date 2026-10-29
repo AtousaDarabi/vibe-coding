@@ -324,6 +324,38 @@
   font-size: 11px;
   margin: 7px 0 0;
 }
+.marketplace-empty {
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  padding: 30px;
+  border: 1px solid #ebefeb;
+  border-radius: 10px;
+  background: #fff;
+  text-align: center;
+}
+.marketplace-empty-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #eaf5ee;
+  color: #438760;
+}
+.marketplace-empty h2 {
+  margin: 15px 0 4px;
+  font-size: 15px;
+  color: #34483a;
+}
+.marketplace-empty p {
+  margin: 0;
+  color: #89968d;
+  font-size: 11px;
+}
 .date-button {
   display: flex;
   align-items: center;
@@ -760,16 +792,16 @@
   background: white;
 }
 .sensor-pin--mint {
-  background: #285d42;
+  background: #62aa7c;
 }
 .sensor-pin--green {
-  background: #285d42;
+  background: #85a956;
 }
 .sensor-pin--blue {
-  background: #285d42;
+  background: #63a6d2;
 }
 .sensor-pin--amber {
-  background: #285d42;
+  background: #dda950;
 }
 .user-marker {
   width: 20px;
@@ -1420,6 +1452,7 @@
 .metric-top,
 .section-heading p,
 .heading-subtitle,
+.marketplace-empty p,
 .page-footer,
 .metric-note,
 .metric-trend small,
@@ -1436,7 +1469,8 @@
 .sidebar-weather,
 .date-button,
 .metric-card,
-.insight-card {
+.insight-card,
+.marketplace-empty {
   background: #2b352e;
   border-color: #343d36;
   color: #f4e8ce;
@@ -1478,6 +1512,7 @@
 .profile-copy strong,
 .breadcrumb strong,
 .page-heading h1,
+.marketplace-empty h2,
 .metric-value,
 .section-heading h2,
 .pulse-row strong {
@@ -1688,16 +1723,16 @@
   box-shadow: 0 2px 8px #202923a8;
 }
 .sensor-pin--mint {
-  background: #285d42;
+  background: #62aa7c;
 }
 .sensor-pin--green {
-  background: #285d42;
+  background: #85a956;
 }
 .sensor-pin--blue {
-  background: #285d42;
+  background: #63a6d2;
 }
 .sensor-pin--amber {
-  background: #285d42;
+  background: #dda950;
 }
 .sensor-pin--task {
   background: #ca826b;
